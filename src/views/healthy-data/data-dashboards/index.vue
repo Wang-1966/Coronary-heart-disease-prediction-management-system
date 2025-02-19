@@ -1,211 +1,384 @@
 <template>
-  <el-card>
-    <h3>患者个人健康数据看板</h3>
-    <div class="line"></div>
-    <el-row :gutter="10">
-      <el-col :span="12">
-
-      </el-col>
-      <el-col :span="12"></el-col>
-    </el-row>
-    
-      <!-- 心率图表容器 -->
-      <!-- 血压图表容器 -->
-      <!-- 血氧饱和度图表容器 -->
-      <!-- 体温图表容器 -->
-  </el-card>
+  <div class="dashboard-container">
+    <div class="head_cards">
+      <el-card class="box-card">
+        <div style="font-size: 20px;font-weight: bold;">
+          血压（高压/低压）
+        </div>
+        <div style="margin-top: 26px;font-size: 18px;">
+          135mmHg/92mmHg
+        </div>
+        <div style="margin-top: 26px;font-size: 16px;color: #30a46c;font-weight: bold;">
+          血压正常
+        </div>
+      </el-card>
+      <el-card class="box-card">
+        <div style="font-size: 20px;font-weight: bold;">
+          血脂（单位：mmol/L）
+        </div>
+        <div style="margin-top: 16px;font-size: 18px;">
+          TC: 5.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LDL-C: 3.2<br />
+          HDL-C: 1.4&nbsp;&nbsp;&nbsp;&nbsp;TG: 1.6
+          <!-- 总胆固醇 (TC): 5.1 mmol/L
+          低密度脂蛋白胆固醇 (LDL-C): 3.2 mmol/L
+          高密度脂蛋白胆固醇 (HDL-C): 1.4 mmol/L
+          甘油三酯 (TG): 1.6 mmol/L -->
+        </div>
+        <div style="margin-top: 11px;font-size: 16px;color: #c00000;font-weight: bold;">
+          血脂偏高
+        </div>
+      </el-card>
+      <el-card class="box-card">
+        <div style="font-size: 20px;font-weight: bold;">
+          血糖
+        </div>
+        <div style="margin-top: 26px;font-size: 18px;">
+          10mmol/l
+        </div>
+        <div style="margin-top: 26px;font-size: 16px;color: #c00000;font-weight: bold;">
+          血糖偏高
+        </div>
+      </el-card>
+      <el-card class="box-card">
+        <div style="font-size: 20px;font-weight: bold;">
+          血氧饱和度
+        </div>
+        <div style="margin-top: 26px;font-size: 18px;">
+          95%
+        </div>
+        <div style="margin-top: 26px;font-size: 16px;color: #30a46c;font-weight: bold;">
+          血氧正常
+        </div>
+      </el-card>
+    </div>
+    <el-card>
+      <div class="echarts"
+           ref="chartRef"></div>
+    </el-card>
+    <div class="bottom-cards">
+      <el-card class="box-card-bottom">
+        <div class="echarts"
+             ref="chartRefLD"></div>
+      </el-card>
+      <el-card class="box-card-bottom">
+        <div class="echarts"
+             ref="chartRefPie"></div>
+      </el-card>
+      <el-card class="box-card-bottom">
+        <div class="echarts"
+             ref="chartRefPie2"></div>
+      </el-card>
+    </div>
+  </div>
 </template>
 
-<script>
-import * as echarts from "echarts"; // 导入ECharts库
-import { onMounted, ref } from "vue"; // 导入Vue的生命周期钩子和ref函数
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+import * as echarts from 'echarts'
 
-export default {
-  name: "HealthDashboard", // 组件名称
-  setup() {
-    const heartRateChart = ref(null); // 定义心率图表的引用
-    const bloodPressureChart = ref(null); // 定义血压图表的引用
-    const oxygenSaturationChart = ref(null); // 定义血氧饱和度图表的引用
-    const bodyTemperatureChart = ref(null); // 定义体温图表的引用
+type EChartsOption = echarts.EChartsOption
+let chart: echarts.ECharts
+let chartRef = ref() //趋势图Dom元素
+let chartRefLD = ref() //雷达图Dom元素
+let chartRefPie = ref() //拼图Dom元素
+let chartRefPie2 = ref() //拼图Dom元素
+onMounted(() => {
+  initChart()
+})
 
-    onMounted(() => {
-      // 在组件挂载后执行初始化图表的操作
-      initHeartRateChart(); // 初始化心率图表
-      initBloodPressureChart(); // 初始化血压图表
-      initOxygenSaturationChart(); // 初始化血氧饱和度图表
-      initBodyTemperatureChart(); // 初始化体温图表
-    });
+function initChart() {
+  // 趋势图
+  chart = echarts.init(chartRef.value)
+  chart.setOption(option)
 
-    // 初始化心率图表的方法
-    const initHeartRateChart = () => {
-      if (heartRateChart.value) {
-        // 检查心率图表的DOM元素是否存在
-        const myChart = echarts.init(heartRateChart.value); // 初始化ECharts实例
-        const option = {
-          // 定义图表配置项
-          title: {
-            text: "心率监测" // 图表标题
-          },
-          tooltip: {}, // 提示框组件
-          xAxis: {
-            type: "category", // X轴类型为类目轴
-            data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] // 类目数据
-          },
-          yAxis: {
-            type: "value", // Y轴类型为数值轴
-            name: "心率 (次/分钟)" // Y轴名称
-          },
-          series: [
-            {
-              // 系列列表
-              name: "心率", // 系列名称
-              type: "line", // 系列类型为折线图
-              data: [75, 80, 79, 82, 85, 83, 81] // 数据数组
-            }
-          ]
-        };
-        myChart.setOption(option); // 设置图表配置项
+  // 雷达图
+  chart = echarts.init(chartRefLD.value)
+  chart.setOption(optionLD)
+  // 拼图
+  chart = echarts.init(chartRefPie.value)
+  chart.setOption(optionPie)
+  // 拼图
+  chart = echarts.init(chartRefPie2.value)
+  chart.setOption(optionPie2)
+}
+const option: EChartsOption = {
+  title: {
+    text: '实时心率'
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
       }
-    };
-
-    // 初始化血压图表的方法
-    const initBloodPressureChart = () => {
-      if (bloodPressureChart.value) {
-        // 检查血压图表的DOM元素是否存在
-        const myChart = echarts.init(bloodPressureChart.value); // 初始化ECharts实例
-        const option = {
-          // 定义图表配置项
-          title: {
-            text: "血压监测" // 图表标题
-          },
-          tooltip: {
-            trigger: "axis" // 提示框触发方式为坐标轴触发
-          },
-          legend: {
-            data: ["收缩压", "舒张压"] // 图例数据
-          },
-          xAxis: {
-            type: "category", // X轴类型为类目轴
-            data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] // 类目数据
-          },
-          yAxis: {
-            type: "value", // Y轴类型为数值轴
-            name: "血压 (mmHg)" // Y轴名称
-          },
-          series: [
-            // 系列列表
-            {
-              name: "收缩压", // 系列名称
-              type: "bar", // 系列类型为柱状图
-              data: [120, 125, 123, 124, 126, 122, 121] // 数据数组
-            },
-            {
-              name: "舒张压", // 系列名称
-              type: "bar", // 系列类型为柱状图
-              data: [80, 82, 81, 83, 84, 82, 80] // 数据数组
-            }
-          ]
-        };
-        myChart.setOption(option); // 设置图表配置项
+    }
+  },
+  legend: {
+    data: ['用户心率', '医学正常心率']
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {}
+    }
+  },
+  grid: {
+    left: '1%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: ['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
+      splitLine: {            // 添加此属性以显示x轴的网格线
+        show: true,           // 显示分割线
+        lineStyle: {          // 自定义线条样式
+          color: '#E0E0E0',   // 网格线颜色
+          // type: 'dashed'      // 线条类型为虚线
+        }
       }
-    };
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value',
+      max: 80000,
+      min: 0,
+      interval: 20000
+    }
+  ],
+  series: [
+    {
+      name: '用户心率',
+      type: 'line',
+      // stack: 'Total',
+      smooth: true,
+      areaStyle: {},
+      yAxisIndex: 0,
+      itemStyle: {
+        color: '#70bbf1'
+      },
 
-    // 初始化血氧饱和度图表的方法
-    const initOxygenSaturationChart = () => {
-      if (oxygenSaturationChart.value) {
-        // 检查血氧饱和度图表的DOM元素是否存在
-        const myChart = echarts.init(oxygenSaturationChart.value); // 初始化ECharts实例
-        const option = {
-          // 定义图表配置项
-          title: {
-            text: "血氧饱和度监测" // 图表标题
-          },
-          tooltip: {}, // 提示框组件
-          xAxis: {
-            type: "category", // X轴类型为类目轴
-            data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] // 类目数据
-          },
-          yAxis: {
-            type: "value", // Y轴类型为数值轴
-            name: "血氧饱和度 (%)" // Y轴名称
-          },
-          series: [
-            {
-              // 系列列表
-              name: "血氧饱和度", // 系列名称
-              type: "line", // 系列类型为折线图
-              data: [98, 97, 99, 98, 97, 98, 99] // 数据数组
-            }
-          ]
-        };
-        myChart.setOption(option); // 设置图表配置项
-      }
-    };
+      data: [111, 2000, 6000, 16000, 33333, 55555, 64000, 33333, 18000, 36000, 70000, 42444, 23222, 13000, 8000, 4000, 1200, 333]
+    },
+    {
+      name: '医学正常心率',
+      type: 'line',
+      // stack: 'Total',
+      areaStyle: {},
+      yAxisIndex: 0,
+      smooth: true,
+      itemStyle: {
+        color: '#2CB3AE'
+      },
 
-    // 初始化体温图表的方法
-    const initBodyTemperatureChart = () => {
-      if (bodyTemperatureChart.value) {
-        // 检查体温图表的DOM元素是否存在
-        const myChart = echarts.init(bodyTemperatureChart.value); // 初始化ECharts实例
-        const option = {
-          // 定义图表配置项
-          title: {
-            text: "体温监测" // 图表标题
-          },
-          tooltip: {}, // 提示框组件
-          xAxis: {
-            type: "category", // X轴类型为类目轴
-            data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] // 类目数据
-          },
-          yAxis: {
-            type: "value", // Y轴类型为数值轴
-            name: "体温 (°C)" // Y轴名称
-          },
-          series: [
-            {
-              // 系列列表
-              name: "体温", // 系列名称
-              type: "line", // 系列类型为折线图
-              data: [36.5, 36.7, 36.6, 36.8, 36.9, 36.7, 36.6] // 数据数组
-            }
-          ]
-        };
-        myChart.setOption(option); // 设置图表配置项
-      }
-    };
-
-    return {
-      heartRateChart, // 返回心率图表的引用
-      bloodPressureChart, // 返回血压图表的引用
-      oxygenSaturationChart, // 返回血氧饱和度图表的引用
-      bodyTemperatureChart // 返回体温图表的引用
-    };
-  }
+      data: [33, 66, 88, 333, 3333, 6200, 20000, 3000, 1200, 13000, 22000, 11000, 2221, 1201, 390, 198, 60, 30]
+    }
+  ]
 };
+
+const optionLD: EChartsOption = {
+  legend: {
+    data: ['实际指标', '标准范围']
+  },
+  radar: {
+    // shape: 'circle', // 如果您希望雷达图是圆形的，可以取消注释
+    indicator: [
+      { name: '血压', max: 160 },
+      { name: '心率', max: 120 },
+      { name: '血糖', max: 10 },
+      { name: '胆固醇', max: 8 },
+      { name: '体重指数', max: 35 },
+      { name: '肺活量', max: 6000 }
+    ]
+  },
+  series: [
+    {
+      name: '健康指标对比',
+      type: 'radar',
+      data: [
+        {
+          value: [150, 115, 9.5, 7.2, 33, 5900], // 标准范围的值
+          name: '标准范围',
+         
+          itemStyle: {
+            color: '#5ab1ef'
+          },
+          // zlevel:1
+        },
+        {
+          value: [130, 100, 8.5, 6.6, 30, 5400], // 实际指标的值
+          name: '实际指标',
+          
+          itemStyle: {
+            color: '#b6a2de'
+          },
+          // zlevel:100
+        }
+      ]
+    }
+  ]
+};
+
+const optionPie: EChartsOption = {
+  grid: {
+    left: '1%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  // backgroundColor: '#2c343c',
+  title: {
+    text: '健康指标',
+    left: 'center',
+    top: 10,
+  },
+  tooltip: {
+    trigger: 'item'
+  },
+  visualMap: {
+    show: false,
+    min: 80,
+    max: 600,
+    inRange: {
+      colorLightness: [0, 1]
+    }
+  },
+  series: [
+    {
+      name: 'Access From',
+      type: 'pie',
+      radius: '65%',
+      // radius: ['35%', '60%'], // 缩小饼图的大小
+      center: ['50%', '50%'],
+      data: [
+        { value: 335, name: 'BMI' },
+        { value: 310, name: '血压' },
+        { value: 274, name: '血糖' },
+        { value: 235, name: '胆固醇' },
+        { value: 400, name: '心率' }
+      ].sort(function (a, b) {
+        return a.value - b.value;
+      }),
+      roseType: 'radius',
+      label: {
+        // color: 'rgba(255, 255, 255, 0.3)'
+      },
+      labelLine: {
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.3)'
+        },
+        smooth: 0.2,
+        length: 10,
+        length2: 20
+      },
+      itemStyle: {
+        color: '#c23531',
+        shadowBlur: 200,
+        shadowColor: 'rgba(0, 0, 0, 0.5)'
+      },
+      animationType: 'scale',
+      animationEasing: 'elasticOut',
+      animationDelay: function (idx) {
+        return Math.random() * 200;
+      }
+    }
+  ]
+};
+const optionPie2: EChartsOption = {
+  title: {
+    text: '摄入营养',
+    left: 'center',
+    top: 10,
+  },
+  grid: {
+    left: '10%',
+    right: '10%',
+    bottom: '10%',
+    top: '20%',
+    containLabel: true
+  },
+  tooltip: {
+    trigger: 'item'
+  },
+  legend: {
+    top: '13%',
+    left: 'center'
+  },
+  series: [
+    {
+      name: 'Health Indicators',
+      type: 'pie',
+      radius: ['35%', '60%'], // 缩小饼图的大小
+      avoidLabelOverlap: false,
+      itemStyle: {
+        borderRadius: 10,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      label: {
+        show: false,
+        position: 'center'
+      },
+      emphasis: {
+        label: {
+          show: true,
+          fontSize: 30, // 缩小强调时的字体大小
+          fontWeight: 'bold'
+        }
+      },
+      labelLine: {
+        show: false
+      },
+      data: [
+        { value: 40, name: '碳水' },       // 碳水化合物
+        { value: 30, name: '蛋白质' },     // 蛋白质
+        { value: 20, name: '脂肪' },       // 脂肪
+        { value: 5, name: '维生素' },      // 维生素
+        { value: 5, name: '矿物质' }       // 矿物质
+      ]
+    }
+  ]
+};
+
 </script>
 
 <style scoped>
-.health-dashboard {
-  padding: 10px; /* 内边距 */
-  background-color: #f9f9f9; /* 背景颜色 */
+.head_cards {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-h1 {
-  text-align: center;
-  color: #333; /* 字体颜色 */
+.bottom-cards {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
 }
 
-.chart {
-  width: 45%; /* 宽度 */
-  height: 400px; /* 高度 */
-  margin: 10px 0; /* 上下外边距 */
-  border: 1px solid #ddd; /* 边框 */
-  border-radius: 8px; /* 圆角 */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影 */
+.box-card {
+  width: 23%;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
-.line{
+
+.box-card-bottom {
+  width: 31%;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.echarts {
   width: 100%;
-  height: 1px;
-  background-color: #acaaaa;
+  height: 400px;
 }
 </style>
